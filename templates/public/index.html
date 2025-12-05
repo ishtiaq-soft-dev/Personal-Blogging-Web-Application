@@ -1,0 +1,134 @@
+{% extends "public/base.html" %}
+
+{% block title %}Home - My Blog{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="mb-4">Latest Posts</h1>
+            
+            {% if posts.items %}
+                <div class="row">
+                    {% for post in posts.items %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            {% if post.thumbnail %}
+                            <img src="{{ url_for('static', filename='uploads/' + post.thumbnail) }}" 
+                                 class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-image fa-3x text-white-50"></i>
+                            </div>
+                            {% endif %}
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">
+                                    <a href="{{ url_for('public.post_detail', slug=post.slug) }}" class="text-decoration-none">
+                                        {{ post.title }}
+                                    </a>
+                                </h5>
+                                <p class="card-text text-muted">
+                                    {{ post.content[:150]|striptags }}...
+                                </p>
+                                <div class="mt-auto">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> {{ post.created_at.strftime('%B %d, %Y') }}
+                                        {% if post.category %}
+                                        | <a href="{{ url_for('public.category_posts', category_id=post.category.id) }}" class="text-decoration-none">
+                                            <i class="fas fa-folder"></i> {{ post.category.name }}
+                                        </a>
+                                        {% endif %}
+                                    </small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-primary me-1">
+                                            <i class="fas fa-heart"></i> {{ post.likes_count }}
+                                        </span>
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-comments"></i> {{ post.comments_count }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if posts.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('public.index', page=posts.prev_num, category=current_category, tag=current_tag, search=search_query) }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page_num %}
+                                {% if page_num == posts.page %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                                {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('public.index', page=page_num, category=current_category, tag=current_tag, search=search_query) }}">{{ page_num }}</a>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if posts.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('public.index', page=posts.next_num, category=current_category, tag=current_tag, search=search_query) }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% else %}
+                <div class="alert alert-info">
+                    <h4>No posts found</h4>
+                    <p>There are no published posts yet. Check back later!</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Categories</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% for category in categories %}
+                        <li class="mb-2">
+                            <a href="{{ url_for('public.category_posts', category_id=category.id) }}" class="text-decoration-none">
+                                <i class="fas fa-folder"></i> {{ category.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Popular Tags</h5>
+                </div>
+                <div class="card-body">
+                    {% for tag in tags %}
+                    <a href="{{ url_for('public.tag_posts', tag_id=tag.id) }}" class="badge bg-secondary text-decoration-none me-1 mb-2">
+                        {{ tag.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,76 @@
+{% extends "public/base.html" %}
+
+{% block title %}{{ category.name }} - My Blog{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Category: {{ category.name }}</h1>
+    
+    {% if posts.items %}
+        <div class="row">
+            {% for post in posts.items %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    {% if post.thumbnail %}
+                    <img src="{{ url_for('static', filename='uploads/' + post.thumbnail) }}" 
+                         class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('public.post_detail', slug=post.slug) }}" class="text-decoration-none">
+                                {{ post.title }}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted">{{ post.content[:150]|striptags }}...</p>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> {{ post.created_at.strftime('%B %d, %Y') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if posts.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('public.category_posts', category_id=category.id, page=posts.prev_num) }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == posts.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('public.category_posts', category_id=category.id, page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if posts.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('public.category_posts', category_id=category.id, page=posts.next_num) }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No posts found in this category.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+
