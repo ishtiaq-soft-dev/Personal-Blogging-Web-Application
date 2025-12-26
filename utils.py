@@ -1,6 +1,7 @@
 from slugify import slugify
 from bleach import clean, linkify
 from flask import request, session
+from datetime import datetime, timedelta
 import uuid
 
 def generate_slug(title):
@@ -13,6 +14,18 @@ def allowed_file(filename):
     from config import Config
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
+
+def is_image_file(filename):
+    """Check if file is an image"""
+    from config import Config
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_IMAGE_EXTENSIONS
+
+def is_video_file(filename):
+    """Check if file is a video"""
+    from config import Config
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_VIDEO_EXTENSIONS
 
 def sanitize_html(content):
     """Sanitize HTML content to prevent XSS attacks"""
@@ -37,5 +50,56 @@ def get_user_identifier():
     # Combine session ID with IP for better uniqueness
     ip = request.remote_addr or 'unknown'
     return f"{session['user_id']}_{ip}"
+
+def time_ago(dt):
+    """Convert datetime to Facebook-style 'time ago' format"""
+    if dt is None:
+        return "just now"
+    
+    # Handle timezone-aware and naive datetimes
+    now = datetime.utcnow()
+    if dt.tzinfo:
+        # Convert timezone-aware to UTC naive
+        dt = dt.replace(tzinfo=None) - (dt.utcoffset() or timedelta(0))
+    
+    diff = now - dt
+    
+    seconds = diff.total_seconds()
+    minutes = seconds / 60
+    hours = minutes / 60
+    days = hours / 24
+    weeks = days / 7
+    months = days / 30
+    years = days / 365
+    
+    if seconds < 60:
+        return "just now"
+    elif minutes < 60:
+        m = int(minutes)
+        return f"{m}m" if m == 1 else f"{m}m"
+    elif hours < 24:
+        h = int(hours)
+        return f"{h}h" if h == 1 else f"{h}h"
+    elif days < 7:
+        d = int(days)
+        return f"{d}d" if d == 1 else f"{d}d"
+    elif weeks < 4:
+        w = int(weeks)
+        return f"{w}w" if w == 1 else f"{w}w"
+    elif months < 12:
+        m = int(months)
+        return f"{m}mo" if m == 1 else f"{m}mo"
+    else:
+        y = int(years)
+        return f"{y}y" if y == 1 else f"{y}y"
+
+def get_avatar_initials(name):
+    """Get initials from name for avatar"""
+    if not name:
+        return "?"
+    parts = name.strip().split()
+    if len(parts) >= 2:
+        return (parts[0][0] + parts[-1][0]).upper()
+    return name[0].upper() if name else "?"
 
 

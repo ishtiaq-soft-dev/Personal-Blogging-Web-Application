@@ -60,6 +60,7 @@
                                         <td>
                                             <form method="POST" action="{{ url_for('admin.delete_category', category_id=category.id) }}" 
                                                   class="d-inline" onsubmit="return confirm('Are you sure? This will also remove the category from all posts.');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <button type="submit" class="btn btn-sm btn-danger">
                                                     <i class="fas fa-trash"></i> Delete
                                                 </button>

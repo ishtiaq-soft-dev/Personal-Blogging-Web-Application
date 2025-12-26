@@ -15,6 +15,7 @@
                         <th>Name</th>
                         <th>Comment</th>
                         <th>Post</th>
+                        <th>Type</th>
                         <th>Date</th>
                         <th>Actions</th>
                     </tr>
@@ -30,10 +31,18 @@
                                 {{ comment.post.title }}
                             </a>
                         </td>
+                        <td>
+                            {% if comment.parent_comment_id %}
+                                <span class="badge bg-info">Reply</span>
+                            {% else %}
+                                <span class="badge bg-primary">Comment</span>
+                            {% endif %}
+                        </td>
                         <td>{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>
                             <form method="POST" action="{{ url_for('admin.delete_comment', comment_id=comment.id) }}" 
                                   class="d-inline" onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-sm btn-danger">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>

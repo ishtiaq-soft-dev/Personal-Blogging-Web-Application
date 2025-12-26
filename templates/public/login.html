@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "public/base.html" %}
 
-{% block title %}Admin Login{% endblock %}
+{% block title %}Login - My Blog{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -9,13 +9,16 @@
             <div class="card shadow">
                 <div class="card-body p-5">
                     <h2 class="card-title text-center mb-4">
-                        <i class="fas fa-lock"></i> Admin Login
+                        <i class="fas fa-sign-in-alt"></i> Login
                     </h2>
+                    <p class="text-muted text-center mb-4">
+                        Sign in to access your account
+                    </p>
                     <form method="POST">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
                             {{ form.username.label(class="form-label") }}
-                            {{ form.username(class="form-control") }}
+                            {{ form.username(class="form-control", placeholder="Enter your username") }}
                             {% if form.username.errors %}
                                 <div class="text-danger">
                                     {% for error in form.username.errors %}
@@ -26,7 +29,7 @@
                         </div>
                         <div class="mb-3">
                             {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control") }}
+                            {{ form.password(class="form-control", placeholder="Enter your password") }}
                             {% if form.password.errors %}
                                 <div class="text-danger">
                                     {% for error in form.password.errors %}
@@ -39,7 +42,12 @@
                             {{ form.submit(class="btn btn-primary btn-lg") }}
                         </div>
                     </form>
-                    <div class="text-center mt-3">
+                    <div class="text-center mt-4">
+                        <p class="mb-2">Don't have an account? 
+                            <a href="{{ url_for('public.signup') }}" class="text-decoration-none">
+                                Sign up here
+                            </a>
+                        </p>
                         <a href="{{ url_for('public.index') }}" class="text-decoration-none">
                             <i class="fas fa-arrow-left"></i> Back to Blog
                         </a>
@@ -50,5 +58,4 @@
     </div>
 </div>
 {% endblock %}
-
 

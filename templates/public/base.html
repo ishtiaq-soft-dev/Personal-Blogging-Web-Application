@@ -32,11 +32,38 @@
                 </button>
             </form>
             <ul class="navbar-nav ms-2">
+                {% if current_user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user"></i> {{ current_user.username }}
+                        {% if current_user.is_admin %}
+                        <span class="badge bg-warning text-dark ms-1">Admin</span>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        {% if current_user.is_admin %}
+                        <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="{{ url_for('public.logout') }}">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a></li>
+                    </ul>
+                </li>
+                {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('admin.login') }}">
-                        <i class="fas fa-sign-in-alt"></i> Admin
+                    <a class="nav-link" href="{{ url_for('public.login') }}">
+                        <i class="fas fa-sign-in-alt"></i> Login
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('public.signup') }}">
+                        <i class="fas fa-user-plus"></i> Sign Up
+                    </a>
+                </li>
+                {% endif %}
             </ul>
         </div>
     </div>

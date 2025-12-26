@@ -1,21 +1,31 @@
-/* Custom Styles */
+/* ============================================
+   Custom Styles - LinkedIn-style Blog
+   ============================================ */
+
+/* Base Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: #f3f2ef;
 }
 
 main {
     flex: 1;
 }
 
+/* Card Styles */
 .card {
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
 .navbar-brand {
@@ -67,17 +77,1388 @@ img {
     padding: 0.35em 0.65em;
 }
 
-/* Comment Section */
-.comment-item {
-    border-left: 3px solid #0d6efd;
-    padding-left: 15px;
-    margin-bottom: 15px;
+/* ============================================
+   LinkedIn-style Post Card (Index Page)
+   ============================================ */
+
+.post-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
-/* Loading Spinner */
+.post-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.post-card-media {
+    position: relative;
+    background: #f0f0f0;
+    overflow: hidden;
+}
+
+.post-card-media img,
+.post-card-media video {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.post-card:hover .post-card-media img,
+.post-card:hover .post-card-media video {
+    transform: scale(1.02);
+}
+
+/* Media Count Badge on Card */
+.media-count-badge {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.media-count-badge i {
+    font-size: 10px;
+}
+
+/* Video Indicator on Card */
+.video-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+.post-card:hover .video-indicator {
+    background: rgba(0,0,0,0.8);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* ============================================
+   Facebook-style Post Interactions
+   ============================================ */
+
+.post-interactions {
+    color: #65676b;
+}
+
+.reactions-summary {
+    padding: 8px 0;
+}
+
+.reaction-icons {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.reaction-icons i {
+    font-size: 16px;
+}
+
+.action-buttons {
+    margin: 0 -8px;
+}
+
+.action-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #65676b;
+    padding: 12px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.action-btn:hover {
+    background-color: #f2f2f2;
+}
+
+.action-btn i {
+    margin-right: 6px;
+}
+
+.action-btn.liked {
+    color: #0a66c2;
+}
+
+.action-btn.liked i {
+    color: #0a66c2;
+}
+
+/* ============================================
+   Avatar Styles
+   ============================================ */
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+}
+
+.avatar-text {
+    line-height: 1;
+}
+
+/* ============================================
+   Facebook-style Comments System
+   ============================================ */
+
+.comments-section {
+    padding: 12px 0;
+}
+
+.comment-form {
+    margin-bottom: 16px;
+}
+
+#comments-container {
+    margin-top: 8px;
+}
+
+#comments-container > .fb-comment-item:first-child {
+    margin-top: 0;
+}
+
+/* Comment Input Styles */
+.comment-input-wrapper {
+    position: relative;
+}
+
+.comment-input {
+    border-radius: 20px;
+    border: 1px solid #ccd0d5;
+    padding: 8px 16px;
+    resize: none;
+    font-size: 15px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.comment-input:focus {
+    border-color: #0a66c2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.1);
+}
+
+.comment-input-reply {
+    font-size: 14px;
+    padding: 6px 14px;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ============================================
+   Facebook-style Comment Item Structure
+   ============================================ */
+
+.fb-comment-item {
+    margin-bottom: 4px;
+}
+
+/* Comment Row - Flexbox layout for avatar + body */
+.comment-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* Avatar Styles */
+.comment-avatar {
+    flex-shrink: 0;
+}
+
+.avatar-parent {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+}
+
+.avatar-reply {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+}
+
+/* Comment Body */
+.comment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Comment Bubble */
+.comment-bubble {
+    background-color: #f0f2f5;
+    border-radius: 18px;
+    padding: 8px 12px;
+    display: inline-block;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.comment-bubble-reply {
+    background-color: #f0f2f5;
+    padding: 6px 10px;
+    border-radius: 16px;
+}
+
+/* Comment Header */
+.comment-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 1px;
+}
+
+.comment-author {
+    font-size: 13px;
+    font-weight: 600;
+    color: #050505;
+    line-height: 1.2;
+}
+
+.comment-reply-indicator {
+    font-size: 12px;
+    color: #65676b;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.comment-reply-indicator i {
+    font-size: 10px;
+    color: #65676b;
+}
+
+.reply-to-name {
+    font-weight: 600;
+    color: #0a66c2;
+}
+
+/* Comment Text */
+.comment-text {
+    font-size: 15px;
+    color: #050505;
+    word-wrap: break-word;
+    line-height: 1.35;
+}
+
+.fb-comment-reply .comment-text {
+    font-size: 14px;
+}
+
+/* ============================================
+   Comment Actions Bar
+   ============================================ */
+
+.comment-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #65676b;
+    margin-top: 2px;
+    margin-left: 12px;
+}
+
+.action-separator {
+    color: #b0b3b8;
+    font-size: 10px;
+}
+
+.comment-action-link {
+    background: none;
+    border: none;
+    color: #65676b;
+    cursor: pointer;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+
+.comment-action-link:hover {
+    text-decoration: underline;
+    color: #0a66c2;
+}
+
+.comment-action-link.liked {
+    color: #0a66c2;
+}
+
+.comment-time {
+    font-size: 12px;
+    color: #65676b;
+    font-weight: normal;
+}
+
+/* ============================================
+   Facebook-style Nested Replies
+   ============================================ */
+
+/* Reply wrapper - contains all nested replies */
+.replies-wrapper {
+    margin-left: 40px;
+    margin-top: 4px;
+    position: relative;
+}
+
+/* Replies container with thread line */
+.replies-container {
+    position: relative;
+    padding-left: 16px;
+    border-left: 2px solid #e4e6eb;
+}
+
+/* Nested reply items */
+.fb-comment-reply {
+    margin-bottom: 4px;
+}
+
+/* Deeper nesting - reduce indent progressively */
+.replies-container .replies-wrapper {
+    margin-left: 32px;
+}
+
+.replies-container .replies-container .replies-wrapper {
+    margin-left: 28px;
+}
+
+.replies-container .replies-container .replies-container .replies-wrapper {
+    margin-left: 24px;
+}
+
+.replies-container .replies-container .replies-container .replies-container .replies-wrapper {
+    margin-left: 20px;
+}
+
+/* Keep thread line consistent */
+.replies-container .replies-container {
+    border-left-color: #e4e6eb;
+}
+
+/* Smaller avatars for deeply nested replies */
+.replies-container .replies-container .avatar-reply {
+    width: 22px;
+    height: 22px;
+    font-size: 9px;
+}
+
+.replies-container .replies-container .replies-container .avatar-reply {
+    width: 20px;
+    height: 20px;
+    font-size: 8px;
+}
+
+/* Last reply in container - no bottom margin */
+.replies-container > .fb-comment-item:last-child,
+.replies-container > .fb-comment-reply:last-child {
+    margin-bottom: 0;
+}
+
+/* ============================================
+   View More Replies Button
+   ============================================ */
+
+.view-more-replies-btn {
+    background: none;
+    border: none;
+    color: #65676b;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.15s;
+    margin-left: 16px;
+    margin-top: 4px;
+}
+
+.view-more-replies-btn:hover {
+    color: #0a66c2;
+    text-decoration: underline;
+}
+
+.view-more-replies-btn i {
+    font-size: 12px;
+}
+
+/* Hidden replies container */
+.hidden-replies {
+    padding-left: 16px;
+    border-left: 2px solid #e4e6eb;
+}
+
+/* ============================================
+   Reply Form Styles
+   ============================================ */
+
+.reply-form-container {
+    margin-top: 8px;
+}
+
+/* ============================================
+   Edit Form Styles
+   ============================================ */
+
+.edit-form-container {
+    margin-top: 8px;
+}
+
+.edit-form {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.edit-form-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-comment-btn {
+    color: #65676b !important;
+}
+
+.edit-comment-btn:hover {
+    color: #0a66c2 !important;
+}
+
+.delete-comment-btn {
+    color: #65676b !important;
+}
+
+.delete-comment-btn:hover {
+    color: #dc3545 !important;
+}
+
+/* Animation for new comments */
+.new-comment-animation {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   Comment Images
+   ============================================ */
+
+.comment-image-container {
+    margin-top: 8px;
+    max-width: 300px;
+}
+
+.comment-image {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    object-fit: cover;
+}
+
+.comment-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Smaller images for reply comments */
+.fb-comment-reply .comment-image-container {
+    max-width: 220px;
+}
+
+.fb-comment-reply .comment-image {
+    max-height: 180px;
+}
+
+/* Image preview in forms */
+.comment-image-preview {
+    margin: 8px 0;
+    position: relative;
+    display: inline-block;
+}
+
+.comment-image-preview .preview-img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid #e4e6eb;
+}
+
+.comment-image-preview .remove-image-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #dc3545;
+    color: white;
+    border: 2px solid white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: transform 0.2s;
+}
+
+.comment-image-preview .remove-image-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Image upload button */
+.image-upload-btn {
+    cursor: pointer;
+    padding: 4px 8px !important;
+}
+
+.image-upload-btn:hover {
+    background-color: #e9ecef;
+}
+
+.image-upload-btn i {
+    color: #65676b;
+}
+
+/* Reply form adjustments for image button */
+.reply-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reply-form {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.reply-form-avatar {
+    flex-shrink: 0;
+}
+
+.reply-form-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.reply-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.btn-reply-submit {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-reply-submit i {
+    font-size: 12px;
+}
+
+/* ============================================
+   View More Comments Link
+   ============================================ */
+
+.view-more-comments {
+    padding: 8px 0;
+}
+
+.view-more-comments a {
+    font-weight: 600;
+    font-size: 14px;
+    color: #65676b;
+}
+
+.view-more-comments a:hover {
+    color: #0a66c2;
+    text-decoration: underline !important;
+}
+
+/* ============================================
+   Loading States
+   ============================================ */
+
+.loading-replies {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #65676b;
+    font-size: 13px;
+    padding: 8px 0;
+    margin-left: 16px;
+}
+
+.loading-replies .spinner-border {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+}
+
 .spinner-border-sm {
     width: 1rem;
     height: 1rem;
 }
 
+/* ============================================
+   LinkedIn-style Media Carousel
+   ============================================ */
 
+.media-carousel-container {
+    position: relative;
+    background: #000;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+}
+
+.media-carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.media-carousel-track {
+    display: flex;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    touch-action: pan-y pinch-zoom;
+}
+
+.media-carousel-slide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    position: relative;
+}
+
+.media-carousel-slide img {
+    max-width: 100%;
+    max-height: 600px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    cursor: pointer;
+}
+
+.media-carousel-slide video {
+    max-width: 100%;
+    max-height: 600px;
+    width: 100%;
+}
+
+/* Navigation Arrows */
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #333;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+    opacity: 0;
+}
+
+.media-carousel-container:hover .carousel-nav-btn {
+    opacity: 1;
+}
+
+.carousel-nav-btn:hover {
+    background: #fff;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.carousel-nav-prev {
+    left: 16px;
+}
+
+.carousel-nav-next {
+    right: 16px;
+}
+
+/* Dots Indicator */
+.carousel-dots {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+}
+
+.carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 0;
+}
+
+.carousel-dot.active {
+    background: #fff;
+    transform: scale(1.3);
+}
+
+.carousel-dot:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Counter Badge */
+.carousel-counter {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 10;
+}
+
+/* Fullscreen Button */
+.carousel-fullscreen-btn {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+.carousel-fullscreen-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+/* Video Play Overlay */
+.video-play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.video-play-overlay:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.video-play-overlay i {
+    font-size: 64px;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+}
+
+.video-play-overlay:hover i {
+    transform: scale(1.1);
+}
+
+.video-play-overlay.hidden {
+    display: none;
+}
+
+/* Swipe Hint */
+.swipe-hint {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 10;
+    animation: fadeOut 3s forwards;
+    animation-delay: 2s;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+/* Fullscreen Modal */
+.fullscreen-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.fullscreen-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.fullscreen-modal .media-carousel-slide img,
+.fullscreen-modal .media-carousel-slide video {
+    max-height: 90vh;
+}
+
+.fullscreen-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+.fullscreen-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Single Image Display */
+.single-media-display {
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    background: #000;
+    cursor: pointer;
+}
+
+.single-media-display img {
+    width: 100%;
+    max-height: 600px;
+    object-fit: contain;
+}
+
+.single-media-display video {
+    width: 100%;
+    max-height: 600px;
+}
+
+/* ============================================
+   Responsive Styles
+   ============================================ */
+
+@media (max-width: 768px) {
+    .carousel-nav-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        opacity: 1;
+    }
+    
+    .carousel-nav-prev {
+        left: 8px;
+    }
+    
+    .carousel-nav-next {
+        right: 8px;
+    }
+    
+    .media-carousel-slide img,
+    .media-carousel-slide video {
+        max-height: 350px;
+    }
+    
+    .carousel-counter {
+        top: 10px;
+        right: 10px;
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+    
+    .video-play-overlay i {
+        font-size: 48px;
+    }
+    
+    .post-card-media img,
+    .post-card-media video {
+        height: 160px;
+    }
+    
+    .action-btn {
+        padding: 10px 6px;
+        font-size: 13px;
+    }
+    
+    .action-btn i {
+        margin-right: 4px;
+    }
+    
+    .action-btn span {
+        display: none;
+    }
+    
+    @media (min-width: 400px) {
+        .action-btn span {
+            display: inline;
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .media-carousel-slide img,
+    .media-carousel-slide video {
+        max-height: 280px;
+    }
+    
+    .carousel-dots {
+        bottom: 10px;
+        padding: 6px 10px;
+        gap: 6px;
+    }
+    
+    .carousel-dot {
+        width: 6px;
+        height: 6px;
+    }
+}
+
+/* ============================================
+   Dark Mode Support
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1d2226;
+        color: #f3f2ef;
+    }
+    
+    .card {
+        background-color: #1d2226;
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    /* Comment Dark Mode */
+    .comment-bubble {
+        background-color: #38434f;
+    }
+    
+    .comment-bubble-reply {
+        background-color: #38434f;
+    }
+    
+    .comment-author {
+        color: #e4e6eb;
+    }
+    
+    .comment-text {
+        color: #e4e6eb;
+    }
+    
+    .comment-actions-bar {
+        color: #b0b3b8;
+    }
+    
+    .action-separator {
+        color: #4e4f50;
+    }
+    
+    .comment-action-link {
+        color: #b0b3b8;
+    }
+    
+    .comment-action-link:hover {
+        color: #5aa7ff;
+    }
+    
+    .comment-time {
+        color: #b0b3b8;
+    }
+    
+    .comment-reply-indicator {
+        color: #b0b3b8;
+    }
+    
+    .reply-to-name {
+        color: #5aa7ff;
+    }
+    
+    .replies-container {
+        border-left-color: #4e4f50;
+    }
+    
+    .hidden-replies {
+        border-left-color: #4e4f50;
+    }
+    
+    .view-more-replies-btn {
+        color: #b0b3b8;
+    }
+    
+    .view-more-replies-btn:hover {
+        color: #5aa7ff;
+    }
+    
+    .comment-input {
+        background-color: #38434f;
+        color: #e4e6eb;
+        border-color: #4e4f50;
+    }
+    
+    .comment-input:focus {
+        border-color: #0a66c2;
+        background-color: #38434f;
+    }
+    
+    .comment-input::placeholder {
+        color: #b0b3b8;
+    }
+    
+    .action-btn {
+        color: #b0b3b8;
+    }
+    
+    .action-btn:hover {
+        background-color: #38434f;
+    }
+    
+    .view-more-comments a {
+        color: #b0b3b8;
+    }
+    
+    .view-more-comments a:hover {
+        color: #5aa7ff;
+    }
+}
+
+/* ============================================
+   Comment Reply Responsive Styles
+   ============================================ */
+
+@media (max-width: 576px) {
+    .replies-wrapper {
+        margin-left: 28px;
+    }
+    
+    .replies-container {
+        padding-left: 12px;
+    }
+    
+    .replies-container .replies-wrapper {
+        margin-left: 24px;
+    }
+    
+    .replies-container .replies-container .replies-wrapper {
+        margin-left: 20px;
+    }
+    
+    .avatar-parent {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+    
+    .avatar-reply {
+        width: 22px;
+        height: 22px;
+        font-size: 9px;
+    }
+    
+    .comment-bubble {
+        padding: 6px 10px;
+    }
+    
+    .comment-author {
+        font-size: 12px;
+    }
+    
+    .comment-text {
+        font-size: 14px;
+    }
+    
+    .comment-actions-bar {
+        margin-left: 10px;
+        font-size: 11px;
+    }
+    
+    .view-more-replies-btn {
+        font-size: 12px;
+        margin-left: 12px;
+    }
+}
+
+/* ============================================
+   Post Card Thumbnail Placeholder
+   ============================================ */
+
+.post-thumbnail-placeholder {
+    height: 200px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.post-thumbnail-placeholder i {
+    font-size: 64px;
+    color: rgba(255,255,255,0.5);
+}
+
+/* ============================================
+   Admin Media Upload Styles
+   ============================================ */
+
+.media-upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.media-upload-zone:hover,
+.media-upload-zone.drag-over {
+    border-color: #0a66c2;
+    background: #e7f1ff;
+}
+
+.media-upload-zone .upload-icon {
+    font-size: 48px;
+    color: #6c757d;
+    margin-bottom: 12px;
+}
+
+.media-upload-zone:hover .upload-icon {
+    color: #0a66c2;
+}
+
+.media-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.media-preview-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #e9ecef;
+    aspect-ratio: 1;
+    cursor: move;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+}
+
+.media-preview-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.media-preview-item.dragging {
+    opacity: 0.5;
+    border-color: #0a66c2;
+}
+
+.media-preview-item img,
+.media-preview-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+}
+
+.media-preview-item:hover .media-preview-overlay {
+    opacity: 1;
+}
+
+.media-order-badge {
+    background: #0a66c2;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.thumbnail-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #198754;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.media-type-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.media-delete-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    align-self: flex-end;
+}
+
+.media-delete-btn:hover {
+    background: #bb2d3b;
+}
+
+.video-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}

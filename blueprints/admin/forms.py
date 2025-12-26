@@ -1,18 +1,16 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, TextAreaField, BooleanField, SelectField, SelectMultipleField, PasswordField, SubmitField
+from wtforms import StringField, TextAreaField, BooleanField, SelectField, SelectMultipleField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, ValidationError
 from models import Category, Tag
 
-class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=80)])
-    password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Login')
 
 class PostForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired(), Length(min=3, max=200)])
     content = TextAreaField('Content', validators=[DataRequired()])
-    thumbnail = FileField('Thumbnail Image', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'webp'], 'Images only!')])
+    thumbnail = FileField('Thumbnail Image (Optional - for backward compatibility)', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'webp'], 'Images only!')])
+    # Note: media_files will be handled via request.files.getlist() in the route
+    # This field is just for the form display
     category = SelectField('Category', coerce=int, validators=[Optional()])
     tags = SelectMultipleField('Tags', coerce=int, validators=[Optional()])
     is_published = BooleanField('Publish', default=False)

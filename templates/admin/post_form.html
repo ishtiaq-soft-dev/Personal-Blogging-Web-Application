@@ -1,13 +1,231 @@
 {% extends "admin/base.html" %} {% block title %}{{ title }}{% endblock %} {%
 block extra_css %}
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+<style>
+  /* Media Upload Zone Styles */
+  .media-upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .media-upload-zone:hover,
+  .media-upload-zone.drag-over {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+  }
+
+  .media-upload-zone.drag-over {
+    transform: scale(1.01);
+  }
+
+  .upload-icon {
+    font-size: 48px;
+    color: #6c757d;
+    margin-bottom: 12px;
+  }
+
+  .media-upload-zone:hover .upload-icon {
+    color: #0d6efd;
+  }
+
+  .upload-text {
+    font-size: 16px;
+    color: #495057;
+    margin-bottom: 4px;
+  }
+
+  .upload-hint {
+    font-size: 13px;
+    color: #6c757d;
+  }
+
+  /* Media Preview Grid */
+  .media-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .media-preview-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #e9ecef;
+    aspect-ratio: 1;
+    cursor: move;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+  }
+
+  .media-preview-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .media-preview-item.dragging {
+    opacity: 0.5;
+    border-color: #0d6efd;
+  }
+
+  .media-preview-item.drag-over {
+    border-color: #198754;
+  }
+
+  .media-preview-item img,
+  .media-preview-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .media-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+  }
+
+  .media-preview-item:hover .media-preview-overlay {
+    opacity: 1;
+  }
+
+  .media-order-badge {
+    background: #0d6efd;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .media-type-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .media-delete-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    align-self: flex-end;
+  }
+
+  .media-delete-btn:hover {
+    background: #bb2d3b;
+  }
+
+  .video-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+  }
+
+  /* Thumbnail Indicator */
+  .thumbnail-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #198754;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* Upload Progress */
+  .upload-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+  }
+
+  .upload-progress-bar {
+    height: 100%;
+    background: #0d6efd;
+    transition: width 0.3s ease;
+  }
+
+  /* Empty State */
+  .media-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+  }
+
+  .media-empty-state i {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  /* File Input Hidden */
+  .hidden-file-input {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+  }
+
+  /* Card Header Actions */
+  .card-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .media-preview-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
 {% endblock %} {% block content %}
 <div class="container-fluid mt-4">
   <h1 class="mb-4">
     <i class="fas fa-{{ 'plus' if not post else 'edit' }}"></i> {{ title }}
   </h1>
 
-  <form method="POST" enctype="multipart/form-data">
+  <form method="POST" enctype="multipart/form-data" id="postForm">
     {{ form.hidden_tag() }}
 
     <div class="row">
@@ -55,25 +273,73 @@ block extra_css %}
           </div>
         </div>
 
+        <!-- Enhanced Media Upload Section -->
         <div class="card mb-3">
-          <div class="card-header">
-            <h5>Thumbnail</h5>
+          <div class="card-header card-header-actions">
+            <h5 class="mb-0"><i class="fas fa-photo-video me-2"></i>Media Files</h5>
+            <span class="badge bg-secondary" id="mediaCount">0 files</span>
           </div>
           <div class="card-body">
-            {% if post and post.thumbnail %}
-            <img
-              src="{{ url_for('static', filename='uploads/' + post.thumbnail) }}"
-              class="img-fluid mb-2"
-              alt="Current thumbnail"
-            />
-            {% endif %} {{ form.thumbnail(class="form-control") }} {% if
-            form.thumbnail.errors %}
-            <div class="text-danger">
-              {% for error in form.thumbnail.errors %}
-              <small>{{ error }}</small>
-              {% endfor %}
+            <!-- Drop Zone -->
+            <div class="media-upload-zone" id="mediaDropZone">
+              <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+              </div>
+              <div class="upload-text">Drop files here or click to upload</div>
+              <div class="upload-hint">
+                <i class="fas fa-image me-1"></i> Images: JPG, PNG, GIF, WEBP
+                <br>
+                <i class="fas fa-video me-1"></i> Videos: MP4, WEBM, MOV, AVI
+              </div>
             </div>
-            {% endif %}
+            
+            <!-- Hidden File Input -->
+            <input type="file" name="media_files" id="mediaFilesInput" 
+                   class="hidden-file-input" multiple 
+                   accept="image/*,video/*">
+            
+            <!-- Preview Grid -->
+            <div class="media-preview-grid" id="mediaPreviewGrid">
+              <!-- Existing media will be loaded here -->
+              {% if post and post.media %}
+                {% for media in post.media %}
+                <div class="media-preview-item existing-media" 
+                     data-media-id="{{ media.id }}" 
+                     data-order="{{ media.order_index }}"
+                     draggable="true">
+                  {% if loop.index == 1 %}
+                  <span class="thumbnail-badge">Cover</span>
+                  {% endif %}
+                  <span class="media-type-badge">{{ media.media_type }}</span>
+                  {% if media.media_type == 'image' %}
+                  <img src="{{ url_for('static', filename='uploads/' + media.filename) }}" 
+                       alt="Media {{ loop.index }}">
+                  {% else %}
+                  <video muted>
+                    <source src="{{ url_for('static', filename='uploads/' + media.filename) }}" 
+                            type="video/{{ media.filename.split('.')[-1] }}">
+                  </video>
+                  <div class="video-play-icon"><i class="fas fa-play-circle"></i></div>
+                  {% endif %}
+                  <div class="media-preview-overlay">
+                    <span class="media-order-badge">{{ loop.index }}</span>
+                    <button type="button" class="media-delete-btn" 
+                            onclick="deleteExistingMedia({{ media.id }}, this)">
+                      <i class="fas fa-trash-alt me-1"></i>Delete
+                    </button>
+                  </div>
+                </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+            
+            <!-- New files preview -->
+            <div class="media-preview-grid" id="newMediaPreviewGrid"></div>
+            
+            <small class="text-muted d-block mt-3">
+              <i class="fas fa-info-circle me-1"></i>
+              Drag to reorder. First item becomes the cover/thumbnail.
+            </small>
           </div>
         </div>
 
@@ -99,9 +365,15 @@ block extra_css %}
     </div>
   </form>
 </div>
-{% endblock %} {% block extra_js %}
+
+<!-- Hidden input for old thumbnail (backward compatibility) -->
+{{ form.thumbnail(class="form-control", style="display:none;") }}
+{% endblock %} 
+
+{% block extra_js %}
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
+  // Quill Editor Setup
   var quill = new Quill('#editor', {
       theme: 'snow',
       modules: {
@@ -117,10 +389,8 @@ block extra_css %}
       }
   });
 
-  // Keep hidden textarea in sync with Quill so browser validation doesn't block submit
   const hiddenContentField = document.getElementById('content');
-
-  // Set initial content if editing
+  
   {% if post %}
   quill.root.innerHTML = {{ post.content|tojson|safe }};
   {% endif %}
@@ -129,13 +399,337 @@ block extra_css %}
       hiddenContentField.value = quill.root.innerHTML;
   };
 
-  // Sync on load and on any editor change
   syncContent();
   quill.on('text-change', syncContent);
 
-  // Final sync right before submit
   document.querySelector('form').addEventListener('submit', function() {
       syncContent();
   });
+
+  // ============== Media Upload & Preview System ==============
+  
+  const dropZone = document.getElementById('mediaDropZone');
+  const fileInput = document.getElementById('mediaFilesInput');
+  const previewGrid = document.getElementById('newMediaPreviewGrid');
+  const existingGrid = document.getElementById('mediaPreviewGrid');
+  const mediaCountBadge = document.getElementById('mediaCount');
+  
+  let newFiles = []; // Store new files to upload
+  
+  // Update media count
+  function updateMediaCount() {
+      const existingCount = document.querySelectorAll('.existing-media').length;
+      const newCount = newFiles.length;
+      const total = existingCount + newCount;
+      mediaCountBadge.textContent = `${total} file${total !== 1 ? 's' : ''}`;
+  }
+  
+  // Click to upload
+  dropZone.addEventListener('click', () => fileInput.click());
+  
+  // Drag and drop handlers
+  dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+  });
+  
+  dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('drag-over');
+  });
+  
+  dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      handleFiles(e.dataTransfer.files);
+  });
+  
+  // File input change
+  fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+  });
+  
+  // Handle selected files
+  function handleFiles(files) {
+      const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-msvideo'];
+      
+      Array.from(files).forEach(file => {
+          if (!allowedImageTypes.includes(file.type) && !allowedVideoTypes.includes(file.type)) {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Invalid File Type',
+                  text: `${file.name} is not a supported image or video file.`
+              });
+              return;
+          }
+          
+          // Check file size (100MB limit)
+          if (file.size > 100 * 1024 * 1024) {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'File Too Large',
+                  text: `${file.name} exceeds 100MB limit.`
+              });
+              return;
+          }
+          
+          newFiles.push(file);
+          createPreviewItem(file, newFiles.length - 1);
+      });
+      
+      updateMediaCount();
+      updateDataTransfer();
+  }
+  
+  // Create preview item for new file
+  function createPreviewItem(file, index) {
+      const item = document.createElement('div');
+      item.className = 'media-preview-item new-media';
+      item.dataset.index = index;
+      item.draggable = true;
+      
+      const isVideo = file.type.startsWith('video/');
+      const mediaType = isVideo ? 'video' : 'image';
+      
+      // Type badge
+      const typeBadge = document.createElement('span');
+      typeBadge.className = 'media-type-badge';
+      typeBadge.textContent = mediaType;
+      item.appendChild(typeBadge);
+      
+      // Thumbnail indicator for first item
+      if (document.querySelectorAll('.existing-media').length === 0 && index === 0) {
+          const thumbBadge = document.createElement('span');
+          thumbBadge.className = 'thumbnail-badge';
+          thumbBadge.textContent = 'Cover';
+          item.appendChild(thumbBadge);
+      }
+      
+      // Create media element
+      if (isVideo) {
+          const video = document.createElement('video');
+          video.muted = true;
+          video.src = URL.createObjectURL(file);
+          item.appendChild(video);
+          
+          // Play icon
+          const playIcon = document.createElement('div');
+          playIcon.className = 'video-play-icon';
+          playIcon.innerHTML = '<i class="fas fa-play-circle"></i>';
+          item.appendChild(playIcon);
+          
+          // Load video thumbnail
+          video.addEventListener('loadeddata', () => {
+              video.currentTime = 1; // Seek to 1 second for thumbnail
+          });
+      } else {
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          item.appendChild(img);
+      }
+      
+      // Overlay with order badge and delete button
+      const overlay = document.createElement('div');
+      overlay.className = 'media-preview-overlay';
+      
+      const orderBadge = document.createElement('span');
+      orderBadge.className = 'media-order-badge';
+      orderBadge.textContent = document.querySelectorAll('.media-preview-item').length + 1;
+      overlay.appendChild(orderBadge);
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'media-delete-btn';
+      deleteBtn.innerHTML = '<i class="fas fa-trash-alt me-1"></i>Remove';
+      deleteBtn.onclick = () => removeNewFile(index);
+      overlay.appendChild(deleteBtn);
+      
+      item.appendChild(overlay);
+      previewGrid.appendChild(item);
+  }
+  
+  // Remove a new (not yet uploaded) file
+  function removeNewFile(index) {
+      newFiles.splice(index, 1);
+      rebuildNewMediaPreview();
+      updateMediaCount();
+      updateDataTransfer();
+  }
+  
+  // Rebuild preview after removal
+  function rebuildNewMediaPreview() {
+      previewGrid.innerHTML = '';
+      newFiles.forEach((file, index) => {
+          createPreviewItem(file, index);
+      });
+      updateOrderBadges();
+  }
+  
+  // Update order badges
+  function updateOrderBadges() {
+      const allItems = document.querySelectorAll('.media-preview-item');
+      allItems.forEach((item, idx) => {
+          const badge = item.querySelector('.media-order-badge');
+          if (badge) badge.textContent = idx + 1;
+          
+          // Update thumbnail badge
+          const thumbBadge = item.querySelector('.thumbnail-badge');
+          if (idx === 0 && !thumbBadge) {
+              const newThumbBadge = document.createElement('span');
+              newThumbBadge.className = 'thumbnail-badge';
+              newThumbBadge.textContent = 'Cover';
+              item.insertBefore(newThumbBadge, item.firstChild);
+          } else if (idx !== 0 && thumbBadge) {
+              thumbBadge.remove();
+          }
+      });
+  }
+  
+  // Update file input DataTransfer for form submission
+  function updateDataTransfer() {
+      const dt = new DataTransfer();
+      newFiles.forEach(file => dt.items.add(file));
+      fileInput.files = dt.files;
+  }
+  
+  // Delete existing media (via AJAX)
+  async function deleteExistingMedia(mediaId, btn) {
+      const result = await Swal.fire({
+          title: 'Delete Media?',
+          text: 'This will permanently delete this file.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          confirmButtonText: 'Delete',
+          cancelButtonText: 'Cancel'
+      });
+      
+      if (!result.isConfirmed) return;
+      
+      const item = btn.closest('.media-preview-item');
+      item.style.opacity = '0.5';
+      
+      try {
+          const response = await fetch(`/admin/api/media/${mediaId}/delete`, {
+              method: 'POST',
+              credentials: 'same-origin'
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              item.remove();
+              updateOrderBadges();
+              updateMediaCount();
+              Swal.fire({
+                  icon: 'success',
+                  title: 'Deleted!',
+                  text: 'Media file has been deleted.',
+                  timer: 1500,
+                  showConfirmButton: false
+              });
+          } else {
+              throw new Error(data.message || 'Failed to delete');
+          }
+      } catch (error) {
+          console.error('Error deleting media:', error);
+          item.style.opacity = '1';
+          Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete media file.'
+          });
+      }
+  }
+  
+  // ============== Drag & Drop Reordering ==============
+  
+  let draggedItem = null;
+  
+  document.addEventListener('dragstart', (e) => {
+      if (e.target.classList.contains('media-preview-item')) {
+          draggedItem = e.target;
+          e.target.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+      }
+  });
+  
+  document.addEventListener('dragend', (e) => {
+      if (e.target.classList.contains('media-preview-item')) {
+          e.target.classList.remove('dragging');
+          document.querySelectorAll('.media-preview-item').forEach(item => {
+              item.classList.remove('drag-over');
+          });
+          updateOrderBadges();
+          
+          // If reordering existing media, save new order
+          if (draggedItem.classList.contains('existing-media')) {
+              saveMediaOrder();
+          }
+      }
+      draggedItem = null;
+  });
+  
+  document.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const item = e.target.closest('.media-preview-item');
+      if (item && item !== draggedItem) {
+          item.classList.add('drag-over');
+      }
+  });
+  
+  document.addEventListener('dragleave', (e) => {
+      const item = e.target.closest('.media-preview-item');
+      if (item) {
+          item.classList.remove('drag-over');
+      }
+  });
+  
+  document.addEventListener('drop', (e) => {
+      const item = e.target.closest('.media-preview-item');
+      if (item && draggedItem && item !== draggedItem) {
+          e.preventDefault();
+          item.classList.remove('drag-over');
+          
+          const parent = item.parentNode;
+          const draggedRect = draggedItem.getBoundingClientRect();
+          const targetRect = item.getBoundingClientRect();
+          
+          if (draggedRect.top < targetRect.top) {
+              parent.insertBefore(draggedItem, item.nextSibling);
+          } else {
+              parent.insertBefore(draggedItem, item);
+          }
+      }
+  });
+  
+  // Save media order for existing media
+  async function saveMediaOrder() {
+      const existingItems = document.querySelectorAll('.existing-media');
+      const order = Array.from(existingItems).map(item => parseInt(item.dataset.mediaId));
+      
+      {% if post %}
+      try {
+          const response = await fetch(`/admin/api/posts/{{ post.id }}/media/reorder`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              credentials: 'same-origin',
+              body: JSON.stringify({ order })
+          });
+          
+          const data = await response.json();
+          if (!data.success) {
+              console.error('Failed to save order:', data.message);
+          }
+      } catch (error) {
+          console.error('Error saving media order:', error);
+      }
+      {% endif %}
+  }
+  
+  // Initialize
+  updateMediaCount();
 </script>
 {% endblock %}

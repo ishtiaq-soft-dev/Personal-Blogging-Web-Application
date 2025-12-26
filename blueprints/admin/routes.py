@@ -1,26 +1,37 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import render_template, redirect, url_for, flash, request, jsonify, current_app, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from extensions import db
-from models import Admin, Post, Category, Tag, Comment, Like
+from models import User, Post, Category, Tag, Comment, Like, PostMedia, UserRole
 from . import admin_bp
-from .forms import LoginForm, PostForm, CategoryForm, TagForm
-from utils import allowed_file, sanitize_html
+from .forms import PostForm, CategoryForm, TagForm
+from utils import allowed_file, sanitize_html, is_image_file, is_video_file
 from datetime import datetime
 import os
 
 
 @admin_bp.before_request
 def restrict_admin_routes():
-    """Ensure only authenticated admin can access admin routes (except login)."""
-    open_endpoints = {"admin.login"}
-    if (
-        request.endpoint
-        and request.endpoint.startswith("admin.")
-        and request.endpoint not in open_endpoints
-        and not current_user.is_authenticated
-    ):
-        return redirect(url_for("admin.login"))
+    """
+    Ensure only authenticated admin users can access admin routes.
+    This is the primary security guard for all admin routes.
+    """
+    # Allow access to admin login redirect (redirects to public login)
+    open_endpoints = {"admin.login", "admin.logout"}
+    
+    if request.endpoint and request.endpoint.startswith("admin."):
+        if request.endpoint in open_endpoints:
+            return  # Allow access to open endpoints
+        
+        # Check if user is authenticated
+        if not current_user.is_authenticated:
+            flash('Please log in to access the admin area.', 'warning')
+            return redirect(url_for("public.login", next=request.url))
+        
+        # Check if user has admin role
+        if not current_user.is_admin:
+            flash('Access denied. Admin privileges required.', 'danger')
+            abort(403)
 
 
 def generate_unique_slug(title: str, post_id: int | None = None) -> str:
@@ -41,25 +52,24 @@ def generate_unique_slug(title: str, post_id: int | None = None) -> str:
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
+    """
+    Redirect to unified login page.
+    The separate admin login is deprecated - all users login through /login
+    """
+    if current_user.is_authenticated and current_user.is_admin:
         return redirect(url_for('admin.dashboard'))
     
-    form = LoginForm()
-    if form.validate_on_submit():
-        admin = Admin.query.filter_by(username=form.username.data).first()
-        if admin and admin.check_password(form.password.data):
-            login_user(admin, remember=True)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('admin.dashboard'))
-        flash('Invalid username or password.', 'danger')
-    return render_template('admin/login.html', form=form)
+    # Redirect to unified public login
+    flash('Please use the unified login page.', 'info')
+    return redirect(url_for('public.login', next=url_for('admin.dashboard')))
 
 @admin_bp.route('/logout')
 @login_required
 def logout():
+    """Admin logout - redirect to public login"""
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('admin.login'))
+    return redirect(url_for('public.login'))
 
 @admin_bp.route('/dashboard')
 @login_required
@@ -101,7 +111,7 @@ def create_post():
     if form.validate_on_submit():
         slug = generate_unique_slug(form.title.data)
         
-        # Handle thumbnail upload
+        # Handle thumbnail upload (for backward compatibility)
         thumbnail_filename = None
         if form.thumbnail.data:
             file = form.thumbnail.data
@@ -123,6 +133,29 @@ def create_post():
             category_id=form.category.data if form.category.data else None,
             is_published=form.is_published.data
         )
+        
+        # Handle multiple media files
+        files = request.files.getlist('media_files')
+        if files and any(f.filename for f in files):
+            for index, file in enumerate(files):
+                if file and file.filename and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    unique_filename = f"{timestamp}_{index}_{filename}"
+                    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(file_path)
+                    
+                    # Determine media type
+                    media_type = 'image' if is_image_file(filename) else 'video'
+                    
+                    # Create PostMedia entry
+                    post_media = PostMedia(
+                        post_id=post.id,  # Will be set after commit
+                        filename=unique_filename,
+                        media_type=media_type,
+                        order_index=index
+                    )
+                    post.media.append(post_media)
         
         # Add tags
         if form.tags.data:
@@ -150,7 +183,7 @@ def edit_post(post_id):
         post.is_published = form.is_published.data
         post.updated_at = datetime.utcnow()
         
-        # Handle thumbnail upload
+        # Handle thumbnail upload (for backward compatibility)
         if form.thumbnail.data:
             file = form.thumbnail.data
             if file and allowed_file(file.filename):
@@ -165,6 +198,30 @@ def edit_post(post_id):
                 post.thumbnail = f"{timestamp}_{filename}"
                 file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], post.thumbnail)
                 file.save(file_path)
+        
+        # Handle new media files (append to existing)
+        files = request.files.getlist('media_files')
+        if files and any(f.filename for f in files):
+            existing_count = len(post.media)
+            for index, file in enumerate(files):
+                if file and file.filename and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    unique_filename = f"{timestamp}_{existing_count + index}_{filename}"
+                    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(file_path)
+                    
+                    # Determine media type
+                    media_type = 'image' if is_image_file(filename) else 'video'
+                    
+                    # Create PostMedia entry
+                    post_media = PostMedia(
+                        post_id=post.id,
+                        filename=unique_filename,
+                        media_type=media_type,
+                        order_index=existing_count + index
+                    )
+                    post.media.append(post_media)
         
         # Update tags
         if form.tags.data:
@@ -191,6 +248,12 @@ def delete_post(post_id):
     # Delete thumbnail if exists
     if post.thumbnail:
         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], post.thumbnail)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    
+    # Delete all media files
+    for media in post.media:
+        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], media.filename)
         if os.path.exists(file_path):
             os.remove(file_path)
     
@@ -271,5 +334,88 @@ def delete_comment(comment_id):
     db.session.commit()
     flash('Comment deleted successfully!', 'success')
     return redirect(url_for('admin.comments'))
+
+
+# ============== Media Management API Endpoints ==============
+
+@admin_bp.route('/api/media/<int:media_id>/delete', methods=['POST', 'DELETE'])
+@login_required
+def delete_media(media_id):
+    """Delete a single media item from a post."""
+    media = PostMedia.query.get_or_404(media_id)
+    post_id = media.post_id
+    
+    # Delete the file from disk
+    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], media.filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    
+    # Delete from database
+    db.session.delete(media)
+    db.session.commit()
+    
+    # Reorder remaining media
+    remaining_media = PostMedia.query.filter_by(post_id=post_id).order_by(PostMedia.order_index).all()
+    for index, m in enumerate(remaining_media):
+        m.order_index = index
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Media deleted successfully',
+        'post_id': post_id
+    })
+
+
+@admin_bp.route('/api/posts/<int:post_id>/media/reorder', methods=['POST'])
+@login_required
+def reorder_media(post_id):
+    """Reorder media items for a post."""
+    post = Post.query.get_or_404(post_id)
+    data = request.get_json() or {}
+    
+    media_order = data.get('order', [])  # List of media IDs in new order
+    
+    if not media_order:
+        return jsonify({
+            'success': False,
+            'message': 'No order provided'
+        }), 400
+    
+    for index, media_id in enumerate(media_order):
+        media = PostMedia.query.filter_by(id=media_id, post_id=post_id).first()
+        if media:
+            media.order_index = index
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Media reordered successfully'
+    })
+
+
+@admin_bp.route('/api/posts/<int:post_id>/media', methods=['GET'])
+@login_required
+def get_post_media(post_id):
+    """Get all media for a post."""
+    post = Post.query.get_or_404(post_id)
+    
+    media_list = []
+    for media in post.media:
+        media_list.append({
+            'id': media.id,
+            'filename': media.filename,
+            'media_type': media.media_type,
+            'order_index': media.order_index,
+            'url': f'/static/uploads/{media.filename}',
+            'created_at': media.created_at.isoformat() if media.created_at else None
+        })
+    
+    return jsonify({
+        'success': True,
+        'post_id': post_id,
+        'media': media_list
+    })
 
 

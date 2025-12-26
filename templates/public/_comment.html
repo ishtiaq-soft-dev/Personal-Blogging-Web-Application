@@ -1,0 +1,198 @@
+{# Facebook-style Comment Template with Recursive Rendering #}
+{# Variables: comment (required), depth (optional, default 0), max_depth (optional, default 10) #}
+
+{% set current_comment = comment %}
+{% set current_depth = depth|default(0) %}
+{% set max_nesting_depth = max_depth|default(10) %}
+{% set is_reply = current_comment.parent_comment_id is not none %}
+{% set is_liked = current_comment.id in user_comment_likes %}
+{% set initial_replies_limit = 3 %}
+
+<div class="fb-comment-item {% if is_reply %}fb-comment-reply{% endif %}" 
+     data-comment-id="{{ current_comment.id }}" 
+     data-depth="{{ current_depth }}"
+     data-parent-id="{{ current_comment.parent_comment_id or '' }}">
+    
+    <div class="comment-row">
+        {# Avatar #}
+        <div class="comment-avatar">
+            <div class="avatar-circle {% if is_reply %}avatar-reply{% else %}avatar-parent{% endif %}">
+                <span class="avatar-text">{{ get_avatar_initials(current_comment.display_name) }}</span>
+            </div>
+        </div>
+        
+        {# Comment Body #}
+        <div class="comment-body">
+            {# Comment Bubble #}
+            <div class="comment-bubble {% if is_reply %}comment-bubble-reply{% endif %}">
+                <div class="comment-header">
+                    <span class="comment-author">{{ current_comment.display_name }}</span>
+                    {% if is_reply and current_comment.parent %}
+                    <span class="comment-reply-indicator">
+                        <i class="fas fa-caret-right"></i>
+                        <span class="reply-to-name">{{ current_comment.parent.display_name }}</span>
+                    </span>
+                    {% endif %}
+                </div>
+                {% if current_comment.comment %}
+                <div class="comment-text">{{ current_comment.comment|safe }}</div>
+                {% endif %}
+                {% if current_comment.image %}
+                <div class="comment-image-container">
+                    <img src="{{ url_for('static', filename='uploads/' + current_comment.image) }}" 
+                         alt="Comment image" 
+                         class="comment-image"
+                         onclick="openImageModal(this.src)">
+                </div>
+                {% endif %}
+            </div>
+            
+            {# Comment Actions Bar #}
+            <div class="comment-actions-bar">
+                <button class="comment-action-link like-comment-btn {% if is_liked %}liked{% endif %}" 
+                        data-comment-id="{{ current_comment.id }}">
+                    <span class="action-text">{% if is_liked %}Liked{% else %}Like{% endif %}</span>
+                    {% if current_comment.likes_count > 0 %}
+                    <span class="comment-likes-count"> · {{ current_comment.likes_count }}</span>
+                    {% endif %}
+                </button>
+                <span class="action-separator">·</span>
+                <button class="comment-action-link reply-btn" 
+                        data-comment-id="{{ current_comment.id }}"
+                        data-comment-author="{{ current_comment.display_name }}"
+                        data-login-url="{{ url_for('public.login', next=request.url) }}">
+                    Reply
+                </button>
+                {% if current_user.is_authenticated and current_comment.user_id == current_user.id %}
+                <span class="action-separator">·</span>
+                <button class="comment-action-link edit-comment-btn" 
+                        data-comment-id="{{ current_comment.id }}"
+                        data-comment-content="{{ current_comment.comment|e }}">
+                    Edit
+                </button>
+                <span class="action-separator">·</span>
+                <button class="comment-action-link delete-comment-btn" 
+                        data-comment-id="{{ current_comment.id }}"
+                        data-has-replies="{{ 'true' if current_comment.replies_count > 0 else 'false' }}">
+                    Delete
+                </button>
+                {% endif %}
+                <span class="action-separator">·</span>
+                <span class="comment-time">{{ time_ago(current_comment.created_at) }}</span>
+            </div>
+            
+            {# Edit Form (Hidden by default) #}
+            {% if current_user.is_authenticated and current_comment.user_id == current_user.id %}
+            <div class="edit-form-container" id="edit-form-{{ current_comment.id }}" style="display: none;">
+                <form class="edit-form" data-comment-id="{{ current_comment.id }}">
+                    <div class="comment-input-wrapper">
+                        <textarea name="content" class="form-control comment-input" 
+                                  rows="2" required maxlength="2000">{{ current_comment.comment }}</textarea>
+                    </div>
+                    <div class="edit-form-actions mt-2">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="fas fa-check"></i> Save
+                        </button>
+                        <button type="button" class="btn btn-sm btn-secondary cancel-edit-btn" 
+                                data-comment-id="{{ current_comment.id }}">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+            
+            {# Reply Form (Hidden by default, shown when Reply is clicked) #}
+            {% if current_user.is_authenticated and session.get('user_type') == 'user' %}
+            <div class="reply-form-container" id="reply-form-{{ current_comment.id }}" style="display: none;">
+                <form method="POST" action="{{ url_for('public.add_comment', post_id=post.id) }}" class="reply-form" id="reply-form-actual-{{ current_comment.id }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="parent_comment_id" value="{{ current_comment.id }}">
+                    <div class="reply-form-avatar">
+                        <div class="avatar-circle avatar-reply">
+                            <span class="avatar-text">{{ get_avatar_initials(current_user.full_name or current_user.username) }}</span>
+                        </div>
+                    </div>
+                    <div class="reply-form-input">
+                        <div class="comment-input-wrapper">
+                            <textarea name="comment" class="form-control comment-input comment-input-reply" 
+                                      rows="1" placeholder="Write a reply..." maxlength="2000"></textarea>
+                        </div>
+                        <div class="comment-image-preview" id="reply-image-preview-{{ current_comment.id }}" style="display: none;">
+                            <img src="" alt="Preview" class="preview-img">
+                            <button type="button" class="remove-image-btn" onclick="removeImagePreview({{ current_comment.id }}, 'reply')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="reply-form-actions">
+                            <label class="btn btn-sm btn-outline-secondary image-upload-btn" title="Add image">
+                                <i class="fas fa-image"></i>
+                                <input type="file" name="image" accept="image/*" class="image-input" 
+                                       onchange="previewImage(this, {{ current_comment.id }}, 'reply')" style="display: none;">
+                            </label>
+                            <button type="submit" class="btn btn-sm btn-primary btn-reply-submit">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-link cancel-reply-btn" 
+                                    data-comment-id="{{ current_comment.id }}">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {# Nested Replies Section #}
+    {% if current_depth < max_nesting_depth %}
+        {% set replies_list = current_comment.get_replies() %}
+        {% if replies_list %}
+            {% set visible_replies = replies_list[:initial_replies_limit] %}
+            {% set hidden_replies = replies_list[initial_replies_limit:] %}
+            
+            <div class="replies-wrapper" id="replies-wrapper-{{ current_comment.id }}">
+                {# Visible Replies #}
+                <div class="replies-container" id="replies-{{ current_comment.id }}">
+                    {% for reply in visible_replies %}
+                        {% set comment = reply %}
+                        {% set depth = current_depth + 1 %}
+                        {% set max_depth = max_nesting_depth %}
+                        {% include 'public/_comment.html' %}
+                    {% endfor %}
+                </div>
+                
+                {# Hidden Replies (View More) #}
+                {% if hidden_replies %}
+                <div class="hidden-replies" id="hidden-replies-{{ current_comment.id }}" style="display: none;">
+                    {% for reply in hidden_replies %}
+                        {% set comment = reply %}
+                        {% set depth = current_depth + 1 %}
+                        {% set max_depth = max_nesting_depth %}
+                        {% include 'public/_comment.html' %}
+                    {% endfor %}
+                </div>
+                <button class="view-more-replies-btn" 
+                        id="view-more-btn-{{ current_comment.id }}"
+                        onclick="showMoreReplies({{ current_comment.id }}); return false;">
+                    <i class="fas fa-reply fa-flip-horizontal"></i>
+                    View {{ hidden_replies|length }} more {% if hidden_replies|length == 1 %}reply{% else %}replies{% endif %}
+                </button>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        {# Max depth reached - show load more link #}
+        {% set replies_count = current_comment.replies_count %}
+        {% if replies_count > 0 %}
+        <div class="replies-wrapper">
+            <button class="view-more-replies-btn load-more-ajax" 
+                    data-comment-id="{{ current_comment.id }}"
+                    data-replies-count="{{ replies_count }}"
+                    onclick="loadRepliesAjax({{ current_comment.id }}); return false;">
+                <i class="fas fa-reply fa-flip-horizontal"></i>
+                View {{ replies_count }} {% if replies_count == 1 %}reply{% else %}replies{% endif %}
+            </button>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
