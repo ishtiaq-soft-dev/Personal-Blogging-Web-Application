@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, TextAreaField, BooleanField, SelectField, SelectMultipleField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, ValidationError
-from models import Category, Tag
+from src.models import Category, Tag
 
 
 class PostForm(FlaskForm):
@@ -21,6 +21,7 @@ class PostForm(FlaskForm):
         self.category.choices = [(0, 'No Category')] + [(c.id, c.name) for c in Category.query.order_by(Category.name).all()]
         self.tags.choices = [(t.id, t.name) for t in Tag.query.order_by(Tag.name).all()]
 
+
 class CategoryForm(FlaskForm):
     name = StringField('Category Name', validators=[DataRequired(), Length(min=2, max=100)])
     submit = SubmitField('Add Category')
@@ -30,6 +31,7 @@ class CategoryForm(FlaskForm):
         if category:
             raise ValidationError('Category already exists.')
 
+
 class TagForm(FlaskForm):
     name = StringField('Tag Name', validators=[DataRequired(), Length(min=2, max=50)])
     submit = SubmitField('Add Tag')
@@ -38,5 +40,4 @@ class TagForm(FlaskForm):
         tag = Tag.query.filter_by(name=name.data).first()
         if tag:
             raise ValidationError('Tag already exists.')
-
 

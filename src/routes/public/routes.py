@@ -1,8 +1,8 @@
 from flask import render_template, request, jsonify, flash, session, redirect, url_for, current_app
 from flask_login import login_user, logout_user, login_required, current_user
-from extensions import db
-from models import Post, Category, Tag, Comment, Like, CommentLike, User, UserRole
-from utils import sanitize_html, get_user_identifier
+from src.extensions import db
+from src.models import Post, Category, Tag, Comment, Like, CommentLike, User, UserRole
+from src.utils import sanitize_html, get_user_identifier
 from datetime import datetime
 from sqlalchemy import or_, func
 from .forms import CommentForm, LoginForm, SignupForm
@@ -713,3 +713,4 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('public.index'))
+

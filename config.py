@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 
 basedir = Path(__file__).parent.absolute()
 
-from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production-2024'
@@ -13,8 +13,8 @@ class Config:
     # Session settings
     PERMANENT_SESSION_LIFETIME = timedelta(days=31)
     
-    # Upload settings
-    UPLOAD_FOLDER = basedir / 'static' / 'uploads'
+    # Upload settings - uploads go to src/static/uploads
+    UPLOAD_FOLDER = basedir / 'src' / 'static' / 'uploads'
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB max file size (for videos)
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'ogg', 'mov', 'avi'}
@@ -26,5 +26,3 @@ class Config:
     # Admin settings
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'admin'
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or 'admin123'  # Change in production!
-
-

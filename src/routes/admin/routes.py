@@ -1,11 +1,11 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify, current_app, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
-from extensions import db
-from models import User, Post, Category, Tag, Comment, Like, PostMedia, UserRole
+from src.extensions import db
+from src.models import User, Post, Category, Tag, Comment, Like, PostMedia, UserRole
 from . import admin_bp
 from .forms import PostForm, CategoryForm, TagForm
-from utils import allowed_file, sanitize_html, is_image_file, is_video_file
+from src.utils import allowed_file, sanitize_html, is_image_file, is_video_file
 from datetime import datetime
 import os
 
@@ -50,6 +50,7 @@ def generate_unique_slug(title: str, post_id: int | None = None) -> str:
         slug = f"{base}-{counter}"
         counter += 1
 
+
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """
@@ -63,6 +64,7 @@ def login():
     flash('Please use the unified login page.', 'info')
     return redirect(url_for('public.login', next=url_for('admin.dashboard')))
 
+
 @admin_bp.route('/logout')
 @login_required
 def logout():
@@ -70,6 +72,7 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('public.login'))
+
 
 @admin_bp.route('/dashboard')
 @login_required
@@ -96,6 +99,7 @@ def dashboard():
                          recent_posts=recent_posts,
                          recent_comments=recent_comments)
 
+
 @admin_bp.route('/posts')
 @login_required
 def posts():
@@ -103,6 +107,7 @@ def posts():
     posts = Post.query.order_by(Post.created_at.desc()).paginate(
         page=page, per_page=10, error_out=False)
     return render_template('admin/posts.html', posts=posts)
+
 
 @admin_bp.route('/posts/create', methods=['GET', 'POST'])
 @login_required
@@ -168,6 +173,7 @@ def create_post():
         return redirect(url_for('admin.posts'))
     
     return render_template('admin/post_form.html', form=form, title='Create Post')
+
 
 @admin_bp.route('/posts/<int:post_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -240,6 +246,7 @@ def edit_post(post_id):
     
     return render_template('admin/post_form.html', form=form, post=post, title='Edit Post')
 
+
 @admin_bp.route('/posts/<int:post_id>/delete', methods=['POST'])
 @login_required
 def delete_post(post_id):
@@ -262,6 +269,7 @@ def delete_post(post_id):
     flash('Post deleted successfully!', 'success')
     return redirect(url_for('admin.posts'))
 
+
 @admin_bp.route('/posts/<int:post_id>/toggle', methods=['POST'])
 @login_required
 def toggle_post(post_id):
@@ -271,6 +279,7 @@ def toggle_post(post_id):
     status = 'published' if post.is_published else 'unpublished'
     flash(f'Post {status} successfully!', 'success')
     return redirect(url_for('admin.posts'))
+
 
 @admin_bp.route('/categories', methods=['GET', 'POST'])
 @login_required
@@ -286,6 +295,7 @@ def categories():
     categories = Category.query.order_by(Category.name).all()
     return render_template('admin/categories.html', form=form, categories=categories)
 
+
 @admin_bp.route('/categories/<int:category_id>/delete', methods=['POST'])
 @login_required
 def delete_category(category_id):
@@ -294,6 +304,7 @@ def delete_category(category_id):
     db.session.commit()
     flash('Category deleted successfully!', 'success')
     return redirect(url_for('admin.categories'))
+
 
 @admin_bp.route('/tags', methods=['GET', 'POST'])
 @login_required
@@ -309,6 +320,7 @@ def tags():
     tags = Tag.query.order_by(Tag.name).all()
     return render_template('admin/tags.html', form=form, tags=tags)
 
+
 @admin_bp.route('/tags/<int:tag_id>/delete', methods=['POST'])
 @login_required
 def delete_tag(tag_id):
@@ -318,6 +330,7 @@ def delete_tag(tag_id):
     flash('Tag deleted successfully!', 'success')
     return redirect(url_for('admin.tags'))
 
+
 @admin_bp.route('/comments')
 @login_required
 def comments():
@@ -325,6 +338,7 @@ def comments():
     comments = Comment.query.order_by(Comment.created_at.desc()).paginate(
         page=page, per_page=20, error_out=False)
     return render_template('admin/comments.html', comments=comments)
+
 
 @admin_bp.route('/comments/<int:comment_id>/delete', methods=['POST'])
 @login_required
@@ -417,5 +431,4 @@ def get_post_media(post_id):
         'post_id': post_id,
         'media': media_list
     })
-
 

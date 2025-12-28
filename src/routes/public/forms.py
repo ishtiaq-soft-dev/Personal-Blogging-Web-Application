@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SubmitField, HiddenField, PasswordField, EmailField
 from wtforms.validators import DataRequired, Length, Optional, Email, EqualTo, ValidationError
-from models import User
+from src.models import User
 
 
 class CommentForm(FlaskForm):
@@ -38,3 +38,4 @@ class SignupForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError('Email already registered. Please use a different email or login.')
+

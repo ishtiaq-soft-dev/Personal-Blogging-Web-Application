@@ -4,10 +4,12 @@ from flask import request, session
 from datetime import datetime, timedelta
 import uuid
 
+
 def generate_slug(title):
     """Generate a unique slug from title"""
     base_slug = slugify(title)
     return base_slug
+
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -15,17 +17,20 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
+
 def is_image_file(filename):
     """Check if file is an image"""
     from config import Config
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_IMAGE_EXTENSIONS
 
+
 def is_video_file(filename):
     """Check if file is a video"""
     from config import Config
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_VIDEO_EXTENSIONS
+
 
 def sanitize_html(content):
     """Sanitize HTML content to prevent XSS attacks"""
@@ -42,6 +47,7 @@ def sanitize_html(content):
     cleaned = linkify(cleaned)
     return cleaned
 
+
 def get_user_identifier():
     """Get unique identifier for user (IP + session)"""
     if 'user_id' not in session:
@@ -50,6 +56,7 @@ def get_user_identifier():
     # Combine session ID with IP for better uniqueness
     ip = request.remote_addr or 'unknown'
     return f"{session['user_id']}_{ip}"
+
 
 def time_ago(dt):
     """Convert datetime to Facebook-style 'time ago' format"""
@@ -93,6 +100,7 @@ def time_ago(dt):
         y = int(years)
         return f"{y}y" if y == 1 else f"{y}y"
 
+
 def get_avatar_initials(name):
     """Get initials from name for avatar"""
     if not name:
@@ -101,5 +109,4 @@ def get_avatar_initials(name):
     if len(parts) >= 2:
         return (parts[0][0] + parts[-1][0]).upper()
     return name[0].upper() if name else "?"
-
 
